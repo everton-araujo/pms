@@ -25,6 +25,12 @@ class Document
     #[ORM\Column]
     private ?bool $validated = null;
 
+    #[ORM\ManyToOne(inversedBy: 'document')]
+    private ?Employee $employee = null;
+
+    #[ORM\ManyToOne(inversedBy: 'document')]
+    private ?Guest $guest = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -74,6 +80,30 @@ class Document
     public function setValidated(bool $validated): self
     {
         $this->validated = $validated;
+
+        return $this;
+    }
+
+    public function getEmployee(): ?Employee
+    {
+        return $this->employee;
+    }
+
+    public function setEmployee(?Employee $employee): self
+    {
+        $this->employee = $employee;
+
+        return $this;
+    }
+
+    public function getGuest(): ?Guest
+    {
+        return $this->guest;
+    }
+
+    public function setGuest(?Guest $guest): self
+    {
+        $this->guest = $guest;
 
         return $this;
     }

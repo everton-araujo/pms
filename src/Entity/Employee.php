@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\EmployeeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -37,6 +39,21 @@ class Employee
 
     #[ORM\Column(length: 255)]
     private ?string $occupation = null;
+
+    #[ORM\ManyToMany(targetEntity: Building::class, mappedBy: 'manager')]
+    private Collection $buildings;
+
+    #[ORM\ManyToOne(inversedBy: 'document')]
+    private ?Address $address = null;
+
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Document::class)]
+    private Collection $document;
+
+    public function __construct()
+    {
+        $this->buildings = new ArrayCollection();
+        $this->document = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -135,6 +152,75 @@ class Employee
     public function setOccupation(string $occupation): self
     {
         $this->occupation = $occupation;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Building>
+     */
+    public function getBuildings(): Collection
+    {
+        return $this->buildings;
+    }
+
+    public function addBuilding(Building $building): self
+    {
+        if (!$this->buildings->contains($building)) {
+            $this->buildings->add($building);
+            $building->addManager($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBuilding(Building $building): self
+    {
+        if ($this->buildings->removeElement($building)) {
+            $building->removeManager($this);
+        }
+
+        return $this;
+    }
+
+    public function getAddress(): ?Address
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?Address $address): self
+    {
+        $this->address = $address;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Document>
+     */
+    public function getDocument(): Collection
+    {
+        return $this->document;
+    }
+
+    public function addDocument(Document $document): self
+    {
+        if (!$this->document->contains($document)) {
+            $this->document->add($document);
+            $document->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocument(Document $document): self
+    {
+        if ($this->document->removeElement($document)) {
+            // set the owning side to null (unless already changed)
+            if ($document->getEmployee() === $this) {
+                $document->setEmployee(null);
+            }
+        }
 
         return $this;
     }

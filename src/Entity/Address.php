@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\AddressRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AddressRepository::class)]
@@ -33,6 +35,18 @@ class Address
 
     #[ORM\Column(length: 255)]
     private ?string $zipCode = null;
+
+    #[ORM\OneToMany(mappedBy: 'address', targetEntity: Employee::class)]
+    private Collection $document;
+
+    #[ORM\ManyToMany(targetEntity: Guest::class, mappedBy: 'address')]
+    private Collection $guests;
+
+    public function __construct()
+    {
+        $this->document = new ArrayCollection();
+        $this->guests = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -119,6 +133,63 @@ class Address
     public function setZipCode(string $zipCode): self
     {
         $this->zipCode = $zipCode;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Employee>
+     */
+    public function getDocument(): Collection
+    {
+        return $this->document;
+    }
+
+    public function addDocument(Employee $document): self
+    {
+        if (!$this->document->contains($document)) {
+            $this->document->add($document);
+            $document->setAddress($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocument(Employee $document): self
+    {
+        if ($this->document->removeElement($document)) {
+            // set the owning side to null (unless already changed)
+            if ($document->getAddress() === $this) {
+                $document->setAddress(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Guest>
+     */
+    public function getGuests(): Collection
+    {
+        return $this->guests;
+    }
+
+    public function addGuest(Guest $guest): self
+    {
+        if (!$this->guests->contains($guest)) {
+            $this->guests->add($guest);
+            $guest->addAddress($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGuest(Guest $guest): self
+    {
+        if ($this->guests->removeElement($guest)) {
+            $guest->removeAddress($this);
+        }
 
         return $this;
     }

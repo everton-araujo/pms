@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\BuildingServiceRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BuildingServiceRepository::class)]
@@ -27,6 +29,14 @@ class BuildingService
 
     #[ORM\Column]
     private ?int $fee = null;
+
+    #[ORM\ManyToMany(targetEntity: Building::class, mappedBy: 'services')]
+    private Collection $buildings;
+
+    public function __construct()
+    {
+        $this->buildings = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -89,6 +99,33 @@ class BuildingService
     public function setFee(int $fee): self
     {
         $this->fee = $fee;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Building>
+     */
+    public function getBuildings(): Collection
+    {
+        return $this->buildings;
+    }
+
+    public function addBuilding(Building $building): self
+    {
+        if (!$this->buildings->contains($building)) {
+            $this->buildings->add($building);
+            $building->addService($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBuilding(Building $building): self
+    {
+        if ($this->buildings->removeElement($building)) {
+            $building->removeService($this);
+        }
 
         return $this;
     }

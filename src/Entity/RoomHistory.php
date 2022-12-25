@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\RoomHistoryRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -22,6 +24,14 @@ class RoomHistory
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $outOfServiceReason = null;
+
+    #[ORM\OneToMany(mappedBy: 'roomHistory', targetEntity: Guest::class)]
+    private Collection $guest;
+
+    public function __construct()
+    {
+        $this->guest = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -60,6 +70,36 @@ class RoomHistory
     public function setOutOfServiceReason(?string $outOfServiceReason): self
     {
         $this->outOfServiceReason = $outOfServiceReason;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Guest>
+     */
+    public function getGuest(): Collection
+    {
+        return $this->guest;
+    }
+
+    public function addGuest(Guest $guest): self
+    {
+        if (!$this->guest->contains($guest)) {
+            $this->guest->add($guest);
+            $guest->setRoomHistory($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGuest(Guest $guest): self
+    {
+        if ($this->guest->removeElement($guest)) {
+            // set the owning side to null (unless already changed)
+            if ($guest->getRoomHistory() === $this) {
+                $guest->setRoomHistory(null);
+            }
+        }
 
         return $this;
     }
